@@ -20,6 +20,19 @@ CLEAN_FILE_MAP = {
     "Nigeria": "nigeria_clean.csv",
 }
 
+
+def process_raw(df, country):
+    df = df.copy()
+    df["Country"] = country
+    df.replace(-999, np.nan, inplace=True)
+    df.drop_duplicates(inplace=True)
+    df["Date"] = pd.to_datetime(df["YEAR"] * 1000 + df["DOY"], format="%Y%j")
+    df["Month"] = df["Date"].dt.month
+    climate_cols = ["T2M", "T2M_MAX", "T2M_MIN", "T2M_RANGE", "PRECTOTCORR", "RH2M", "WS2M", "WS2M_MAX", "PS", "QV2M"]
+    existing = [c for c in climate_cols if c in df.columns]
+    df[existing] = df[existing].ffill()
+    return df
+
 CLIMATE_VARS = ["T2M", "T2M_MAX", "T2M_MIN", "T2M_RANGE", "PRECTOTCORR", "RH2M", "WS2M", "WS2M_MAX", "PS", "QV2M"]
 
 VAR_LABELS = {
@@ -45,9 +58,15 @@ def load_clean_data(countries):
     data_dir = get_data_dir()
     dfs = []
     for country in countries:
-        path = os.path.join(data_dir, CLEAN_FILE_MAP[country])
-        if os.path.exists(path):
-            df = pd.read_csv(path, parse_dates=["Date"])
+        # Try cleaned CSV first, fall back to raw
+        clean_path = os.path.join(data_dir, CLEAN_FILE_MAP[country])
+        raw_path = os.path.join(data_dir, FILE_MAP[country])
+        if os.path.exists(clean_path):
+            df = pd.read_csv(clean_path, parse_dates=["Date"])
+            dfs.append(df)
+        elif os.path.exists(raw_path):
+            df = pd.read_csv(raw_path)
+            df = process_raw(df, country)
             dfs.append(df)
     if not dfs:
         return pd.DataFrame()
