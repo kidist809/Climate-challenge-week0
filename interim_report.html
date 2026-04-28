@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #222; }
+  h1 { color: #1a1a2e; border-bottom: 2px solid #1a1a2e; padding-bottom: 8px; }
+  h2 { color: #16213e; margin-top: 30px; }
+  h3 { color: #0f3460; }
+  pre, code { background: #f4f4f4; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
+  pre { padding: 12px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background: #f0f0f0; }
+  .meta { color: #555; font-size: 14px; margin-bottom: 20px; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+</style>
+</head>
+<body>
+
+<h1>B9W0: African Climate Trend Analysis — Interim Report</h1>
+<div class="meta">
+  <strong>Name:</strong> Kidist &nbsp;|&nbsp;
+  <strong>GitHub:</strong> <a href="https://github.com/kidist809/Climate-challenge-week0">github.com/kidist809/Climate-challenge-week0</a> &nbsp;|&nbsp;
+  <strong>Date:</strong> April 26, 2026
+</div>
+
+<hr>
+
+<h2>1. Understanding and Defining the Business Objective</h2>
+
+<p>
+This project analyzes daily climate data from five African countries — Ethiopia, Kenya, Sudan, Tanzania, and Nigeria — using NASA POWER MERRA-2 satellite-derived reanalysis data spanning January 2015 to March 2026. The data was extracted for each country's capital city as a representative location.
+</p>
+<p>
+The business objective is to produce a data-driven climate vulnerability analysis to inform Ethiopia's position paper for <strong>COP32 (Addis Ababa, 2027)</strong>. Specifically, the analysis aims to:
+</p>
+<ul>
+  <li>Identify temperature and precipitation trends across the five countries</li>
+  <li>Detect extreme weather events (heat days, drought streaks)</li>
+  <li>Rank countries by climate vulnerability</li>
+  <li>Provide evidence-based recommendations on which country Ethiopia should champion for priority climate finance at COP32</li>
+</ul>
+<p>
+The dataset contains 10 climate variables including mean, max, and min temperature (T2M, T2M_MAX, T2M_MIN), precipitation (PRECTOTCORR), relative humidity (RH2M), wind speed (WS2M), surface pressure (PS), and specific humidity (QV2M). Missing values are encoded as -999 (NASA's sentinel value) and must be handled before any analysis.
+</p>
+
+<hr>
+
+<h2>2. Discussion of Completed Work and Initial Analysis</h2>
+
+<h3>Task 1: Git & Environment Setup</h3>
+<p>
+A GitHub repository named <code>climate-challenge-week0</code> was initialized with the required project structure. A <code>setup-task</code> branch was created with three commits following Conventional Commits conventions:
+</p>
+<ul>
+  <li><code>init: add .gitignore</code> — excludes data/, *.csv, and cache files</li>
+  <li><code>chore: add requirements.txt and README</code> — documents dependencies and environment setup</li>
+  <li><code>ci: add GitHub Actions workflow and project structure</code> — sets up CI and folder scaffolding</li>
+</ul>
+<p>
+A GitHub Actions CI workflow was configured to run <code>pip install -r requirements.txt</code> on every push to main, ensuring reproducibility. The branch was merged into main via a Pull Request.
+</p>
+
+<h3>Task 2: Data Profiling, Cleaning & EDA</h3>
+<p>
+Five separate Jupyter notebooks were created, one per country, each following the same structured pipeline:
+</p>
+<ul>
+  <li><strong>Data Loading:</strong> Each CSV loaded with a Country column added. Date reconstructed from YEAR and DOY columns using <code>pd.to_datetime(df['YEAR'] * 1000 + df['DOY'], format='%Y%j')</code>. Month extracted for seasonal analysis.</li>
+  <li><strong>Missing Values:</strong> All -999 sentinel values replaced with NaN. Missing value percentages computed per column. No column exceeded 5% nulls in any country dataset.</li>
+  <li><strong>Duplicates:</strong> No duplicate rows were found in any of the five datasets, consistent with clean daily NASA POWER extractions.</li>
+  <li><strong>Summary Statistics:</strong> df.describe() run on all numeric columns. Key findings: Sudan has the highest mean T2M (~30°C), Ethiopia the lowest (~17°C) due to high altitude. Nigeria has the highest average precipitation.</li>
+  <li><strong>Outlier Detection:</strong> Z-scores computed for T2M, T2M_MAX, T2M_MIN, PRECTOTCORR, RH2M, WS2M, WS2M_MAX. Outliers (|Z| > 3) were retained as they represent genuine extreme weather events critical for vulnerability analysis.</li>
+  <li><strong>Cleaning:</strong> Missing values forward-filled using ffill(). Rows with >30% missing values dropped. Cleaned CSVs exported to data/ folder (excluded from GitHub).</li>
+  <li><strong>Visualizations produced:</strong> Monthly T2M line charts, monthly PRECTOTCORR bar charts, correlation heatmaps, scatter plots (T2M vs RH2M; T2M_RANGE vs WS2M), log-scale precipitation histograms, and bubble charts.</li>
+</ul>
+
+<h3>Task 3: Cross-Country Comparison (Completed)</h3>
+<p>
+A <code>compare_countries.ipynb</code> notebook was created loading all five cleaned datasets. Key outputs include:
+</p>
+<ul>
+  <li>Monthly T2M line chart for all 5 countries on a single plot</li>
+  <li>Temperature and precipitation summary tables (mean, median, std)</li>
+  <li>Side-by-side precipitation boxplots</li>
+  <li>Extreme heat days per year (T2M_MAX > 35°C) — Sudan leads significantly</li>
+  <li>Max consecutive dry days per year — Sudan again leads</li>
+  <li>One-way ANOVA confirming statistically significant temperature differences (p &lt; 0.05)</li>
+  <li>Vulnerability ranking table with normalized scores</li>
+</ul>
+<p>
+<strong>Key finding:</strong> Sudan ranks highest on all vulnerability metrics — highest temperatures, most extreme heat days, longest dry streaks, and most erratic precipitation. Ethiopia ranks in the middle, with altitude moderating temperature but high sensitivity to monsoon variability.
+</p>
+
+<hr>
+
+<h2>3. Next Steps and Key Areas of Focus</h2>
+
+<ul>
+  <li><strong>Streamlit Dashboard (Bonus):</strong> Build an interactive dashboard with country multi-select, year range slider, temperature trend line chart, and precipitation boxplot. Deploy to Streamlit Community Cloud.</li>
+  <li><strong>Final Report:</strong> Write a comprehensive Medium blog-style report covering all three tasks, embedding key visualizations, and presenting the COP32 vulnerability ranking with supporting evidence.</li>
+  <li><strong>Deeper Trend Analysis:</strong> Investigate year-over-year warming trends using linear regression to quantify the rate of temperature increase per country between 2015 and 2026.</li>
+  <li><strong>Seasonal Decomposition:</strong> Apply time series decomposition to separate trend, seasonality, and residual components for T2M and PRECTOTCORR.</li>
+</ul>
+
+<hr>
+
+<h2>4. Report Structure, Clarity, and Conciseness</h2>
+
+<p>
+This report is organized into four sections aligned with the rubric: business objective, completed work, next steps, and structure. All code is version-controlled on GitHub with meaningful commit messages. Each notebook contains markdown cells documenting every analytical decision. The repository is publicly accessible at:
+</p>
+<p><strong><a href="https://github.com/kidist809/Climate-challenge-week0">https://github.com/kidist809/Climate-challenge-week0</a></strong></p>
+
+</body>
+</html>

@@ -1,5 +1,4 @@
-data/
-*.csv
+data/*_clean.csv
 *.ipynb_checkpoints
 __pycache__/
 *.pyc
